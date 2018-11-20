@@ -28,6 +28,9 @@ class Circuits:
         self.output_gate_ids = []
         print(self.gates)
 
+    def get_gate_by_id(self, gate_id):
+        return self.gates[gate_id]
+
     def print_out(self):
         print(self.name + ": ")
         print("Alice input wire:", end=" ")
@@ -54,10 +57,13 @@ class Gate:
         NOT , OR , AND , XOR , NOR , NAND , XNOR
         :return:
         """
-        input0 = self.circuit.get(self.inputs[0]).construct()
+
+        input0 = 0
         input1 = 0
-        if self.type != "NOT":
-            input1 = self.circuit.get(self.inputs[1]).construct()
+        if self.type != "INPUT":
+            self.circuit.get(self.inputs[0]).construct()
+            if self.type != "NOT":
+                input1 = self.circuit.get(self.inputs[1]).construct()
 
         if self.output is None:
             if self.type == "NOT":
