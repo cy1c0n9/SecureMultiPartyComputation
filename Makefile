@@ -69,4 +69,6 @@ million:main.py
 test:	main.py
 	${ONEFILE} json/f.test.json
 
+andor:	main.py
+	${ONEFILE} json/f.andor.json
 
