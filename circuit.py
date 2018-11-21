@@ -1,5 +1,6 @@
 import json	    # load
 import sys	    # argv
+import util
 import itertools
 
 
@@ -33,14 +34,11 @@ class Circuits:
         # generate gates except input
         self.__gates_json_ = gates
         self.__generate_gates__()
+
         # generate input
         self.__input_table = self.__truth_table__(len(self.alice_) + len(self.bob_))
-        print(self.__input_table)
 
-        # for idx, g in self.gates_.items():
-        #     g.print_out()
-        # self.output_gate_ids = []
-        # print(self.name_)
+        self.__test__()
 
     def __generate_gates__(self):
         """
@@ -93,22 +91,26 @@ class Circuits:
 
         pass
 
-    def print_out(self):
-        print(self.name_ + ": ")
-        print("Alice input wire:", end=" ")
-        print(self.alice_)
-        print("Bob input wire  :", end=" ")
-        print(self.bob_)
-        print("Output wire     :", end=" ")
-        print(self.out_gate_id_)
-        print("Gates:", end=" ")
-        print(self.__gates_json_)
-
     def get_gate_by_id(self, gate_id):
         return self.gates_[gate_id]
 
     def get_in_by_id(self, in_id):
         return self.inputs_[in_id]
+
+    def print_out(self):
+        util.log(self.name_ + ": ")
+        util.log("Alice input wire:" + str(self.alice_))
+        util.log("Bob input wire  :" + str(self.bob_))
+        util.log("Output wire     :" + str(self.out_gate_id_))
+        util.log("Gates           :" + str(self.__gates_json_))
+
+    def __test__(self):
+        self.__generate_input__([0, 1, 1, 0, 1])
+        # util.log(self.__input_table)
+        util.log(self.name_)
+        # for idx, g in self.gates_.items():
+        #     g.print_out()
+        self.__run_circuit__()
 
 
 class Gate:
@@ -167,23 +169,19 @@ class Gate:
             elif self.type_ == "INPUT":
                 self.output_ = self.circuit_.get_in_by_id(self.gate_id_)
             else:
-                print("bad gate type")
-        # self.print_out()
+                util.log("bad gate type")
+        self.print_out()
         return self.output_
 
     def reset(self):
         self.output_ = None
 
     def print_out(self):
-        print(self.circuit_.name_ + ": ")
-        print("type     :", end=" ")
-        print(self.type_)
-        print("gate id  :", end=" ")
-        print(self.gate_id_)
-        print("inputs   :", end=" ")
-        print(self.inputs_)
-        print("outputs  :", end=" ")
-        print(self.output_)
+        util.log(self.circuit_.name_ + ": ")
+        util.log("type     :" + str(self.type_))
+        util.log("gate id  :" + str(self.gate_id_))
+        util.log("inputs   :" + str(self.inputs_))
+        util.log("outputs  :" + str(self.output_))
 
 
 # for json reading _________________________________________________

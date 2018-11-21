@@ -14,11 +14,12 @@ import zmq	        # Context
 
 # logging __________________________________________________________________
 
-VERBOSE = 0 				# 0=quiet, 1+=increasing verbosity
+VERBOSE = 2 				# 0=quiet, 1+=increasing verbosity
 
 
 def log(message, verbose=1):
-    if VERBOSE >= verbose: print(message)
+    if VERBOSE >= verbose:
+        print(message)
 
 
 def exit(message):			# for exiting after errors
