@@ -1,6 +1,6 @@
 
 # yao garbled circuit evaluation v1. simple version based on smart
-# naranker dulay, dept of computing, imperial college, october 2018
+# yicong chen, dept of computing, imperial college, november 2018
 
 import json	    # load
 import sys	    # argv
@@ -8,7 +8,6 @@ import sys	    # argv
 import ot	    # alice, bob
 import util	    # ClientSocket, log, ServerSocket
 import yao	    # Circuit
-import json_util as jutil    #
 
 
 # Alice is the circuit generator (client) __________________________________
@@ -43,10 +42,10 @@ def local_test(filename):
     for json_circuit in json_circuits['circuits']:
         # print(json_circuit["name"])
         name = json_circuit["name"]
-        a = jutil.get_attribute(json_circuit, "alice", [])
-        b = jutil.get_attribute(json_circuit, "bob", [])
+        a = yao.get_attribute(json_circuit, "alice", [])
+        b = yao.get_attribute(json_circuit, "bob", [])
         out = json_circuit["out"]
-        cir = jutil.Circuits(name, a, b, out, json_circuit["gates"])
+        cir = yao.Circuits(name, a, b, out, json_circuit["gates"])
         # cir.print_out()
         # print(json_circuit["gates"])
         pass
