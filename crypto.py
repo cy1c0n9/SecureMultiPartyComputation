@@ -11,29 +11,46 @@ AES_BASED = True
 if ENCRYPTED:   # ____________________________________________________________
     # secure AES based encryption
 
-    def encrypt(plain_txt, key):
+    def encrypt(plain_txt, key0, key1=None):
         """
-
+        example0: encrypt(p, k0, k1)    returns Ek0(Ek1(p))
+        example1: encrypt(p, k0)        returns Ek0(p)
         :param plain_txt:   bytes
-        :param key:         bytes
+        :param key0:        bytes
+        :param key1:        bytes
         :return:
         """
-        if AES_BASED:
-            return aes_encrypt(plain_txt, key)
+        if key1 is None:
+            if AES_BASED:
+                return aes_encrypt(plain_txt, key0)
+            else:
+                return xor_encrypt(plain_txt, key0)
         else:
-            return xor_encrypt(plain_txt, key)
+            if AES_BASED:
+                return aes_encrypt(aes_encrypt(plain_txt, key1), key0)
+            else:
+                return xor_encrypt(xor_encrypt(plain_txt, key1), key0)
 
-    def decrypt(cipher_txt, key):
+
+    def decrypt(cipher_txt, key0, key1=None):
         """
-
+        example0: decrypt(c, k0, k1)    c = Ek0(Ek1(p)) return p
+        example1: decrypt(c, k0)        c = Ek0(p) return p
         :param cipher_txt:  bytes
-        :param key:         bytes
+        :param key0:        bytes
+        :param key1:        bytes
         :return:
         """
-        if AES_BASED:
-            return aes_decrypt(cipher_txt, key)
+        if key1 is None:
+            if AES_BASED:
+                return aes_decrypt(cipher_txt, key0)
+            else:
+                return xor_decrypt(cipher_txt, key0)
         else:
-            return xor_decrypt(cipher_txt, key)
+            if AES_BASED:
+                return aes_decrypt(aes_decrypt(cipher_txt, key0), key1)
+            else:
+                return xor_decrypt(xor_decrypt(cipher_txt, key0), key1)
 
 
     def aes_encrypt(plain_txt, key):
@@ -107,3 +124,7 @@ def shuffle(l):
 # generate random 1 bit, return a int 0 or int 1
 def random_1_bit():
     return SystemRandom().randrange(2)
+
+
+def find_key_pair_index(pair, search_key):
+    return [idx for idx, key_val in pair.items() if key_val == search_key][0]

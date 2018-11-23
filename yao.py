@@ -64,7 +64,6 @@ class Circuits:
         for g in gates_json:
             new_gate = Gate(self, g["id"], g["type"], g["in"])
             self.wires_[new_gate.gate_id_] = new_gate.output_wire_
-            # TODO(yicong) update all p bit and update all input key pair
             new_gate.make_garble_table()
             self.gates_[g["id"]] = new_gate
             # new_gate.print_garble_table()
@@ -143,6 +142,8 @@ class Gate:
             #          + ":" + str(self.input_wires_[i].key_pair_))
 
         self.output_wire_ = Wire(gate_id, crypto.key_pair())
+        util.log(str(crypto.find_key_pair_index(self.output_wire_.key_pair_,
+                                                self.output_wire_.key_pair_[1])))
         self.output_ = None
 
     @staticmethod
@@ -248,20 +249,21 @@ class Gate:
                 util.log("bad gate type")
             # encrypt keys according to the entry of truth table via  crypto.py
             try:
-                encrypt_key = crypto.encrypt(crypto.encrypt(self.output_wire_.key_pair_[out_val],
-                                                            self.input_wires_[1].key_pair_[wire1_idx]),
-                                             self.input_wires_[0].key_pair_[wire0_idx])
+                encrypt_key = crypto.encrypt(plain_txt=self.output_wire_.key_pair_[out_val],
+                                             key0=self.input_wires_[0].key_pair_[wire0_idx],
+                                             key1=self.input_wires_[1].key_pair_[wire1_idx])
                 # # test crypto function
-                # decrypt_key = crypto.decrypt(crypto.decrypt(encrypt_key,
-                #                                             self.input_wires_[0].key_pair_[wire0_idx]),
-                #                              self.input_wires_[1].key_pair_[wire1_idx])
+                # decrypt_key = crypto.decrypt(cipher_txt=encrypt_key,
+                #                              key0=self.input_wires_[0].key_pair_[wire0_idx],
+                #                              key1=self.input_wires_[1].key_pair_[wire1_idx])
                 # if decrypt_key == self.output_wire_.key_pair_[out_val]:
                 #     util.log("successful decrypt!")
                 # else:
                 #     util.log("decrypt error!")
             except KeyError:
-                encrypt_key = crypto.encrypt(self.output_wire_.key_pair_[out_val],
-                                             self.input_wires_[0].key_pair_[wire0_idx])
+                encrypt_key = crypto.encrypt(plain_txt=self.output_wire_.key_pair_[out_val],
+                                             key0=self.input_wires_[0].key_pair_[wire0_idx],
+                                             key1=None)
             table.append((encrypt_key, out_val))
         # shuffle the output value of garble table
         # util.log("original table")
@@ -322,6 +324,7 @@ class Wire:
         self.key_pair_ = key_pair
         self.p_bit_ = None
         self.value_ = None
+        self.set_p_bit()
         pass
 
     def set_p_bit(self, val=None):
@@ -329,6 +332,7 @@ class Wire:
         if val is None:
             self.p_bit_ = crypto.random_1_bit()
         elif val in valid_val_list:
+            util.log("warning: p_bit already set, wire id - " + str(self.wire_id_))
             self.p_bit_ = val
         else:
             raise ValueError("invalid p bit value")
@@ -354,4 +358,3 @@ class Wire:
 # for json reading _________________________________________________
 def get_attribute(data, attribute, default_value):
     return data.get(attribute) or default_value
-
