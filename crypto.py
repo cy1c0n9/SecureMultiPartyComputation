@@ -6,6 +6,7 @@ from cryptography.fernet import Fernet
 from random import SystemRandom
 
 ENCRYPTED = True
+AES_BASED = True
 
 if ENCRYPTED:   # ____________________________________________________________
     # secure AES based encryption
@@ -17,7 +18,10 @@ if ENCRYPTED:   # ____________________________________________________________
         :param key:         bytes
         :return:
         """
-        return xor_encrypt(plain_txt, key)
+        if AES_BASED:
+            return aes_encrypt(plain_txt, key)
+        else:
+            return xor_encrypt(plain_txt, key)
 
     def decrypt(cipher_txt, key):
         """
@@ -26,7 +30,11 @@ if ENCRYPTED:   # ____________________________________________________________
         :param key:         bytes
         :return:
         """
-        return xor_decrypt(cipher_txt, key)
+        if AES_BASED:
+            return aes_decrypt(cipher_txt, key)
+        else:
+            return xor_decrypt(cipher_txt, key)
+
 
     def aes_encrypt(plain_txt, key):
         f = Fernet(key)
@@ -70,7 +78,7 @@ if ENCRYPTED:   # ____________________________________________________________
         return result
 
 else:   # ____________________________________________________________________
-    # totally insecure key less implementation
+    # totally insecure key-less implementation
 
     def encrypt(plain_txt, key=0):
         return plain_txt
@@ -81,13 +89,21 @@ else:   # ____________________________________________________________________
 # ____________________________________________________________________________
 
 
-# key generation _____________________________________________________________
+# utilities __________________________________________________________________
+# generate key pair
 def key_pair():
     return {0: Fernet.generate_key(),
             1: Fernet.generate_key()}
 
 
+# shuffle the list
+# example: shuffle(l) the list is shuffled after execution
 def shuffle(l):
     for i in range(len(l)-1, 0, -1):
         j = SystemRandom().randrange(i+1)
         l[i], l[j] = l[j], l[i]
+
+
+# generate random 1 bit, return a int 0 or int 1
+def random_1_bit():
+    return SystemRandom().randrange(2)

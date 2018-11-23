@@ -13,12 +13,13 @@ import itertools
 class Circuits:
     """
     Attributes:
-        name_:      name of the circuits
-        alice_:     list of alice's input wire
-        bob_:       list of bob's input wire
-        out_gate_id_:       list of output wire
-        gates_:     dictionary of (gate id x Gate object)
-        inputs_keys_:    dictionary of (input wire id : key pair)
+        name_:          name of the circuits
+        alice_:         list of alice's input wire
+        bob_:           list of bob's input wire
+        out_gate_id_:   list of output wire
+        gates_:         dictionary of (gate id x Gate object)
+        wires_:         dictionary of (wire id x Wire object)
+        inputs_keys_:   dictionary of (input wire id : key pair)
     """
 
     def __init__(self, name, a, b, out, gates):
@@ -36,10 +37,23 @@ class Circuits:
         self.out_gate_id_ = out
         # generate inputs
         self.inputs_keys_ = {}
+        self.wires_ = {}
         self.__generate_input__()
         # generate gates
         self.__generate_gates__(gates)
         # self.__test__()
+
+    def __generate_input__(self):
+        """
+        :return: self.inputs_keys :   dictionary of (wire id : Wire)
+        """
+        self.inputs_keys_ = {}
+        input_wire_id_list = sorted(self.alice_ + self.bob_)
+
+        for i, idx in enumerate(input_wire_id_list):
+            wire = Wire(idx, crypto.key_pair())
+            self.inputs_keys_[idx] = wire
+            self.wires_[idx] = wire
 
     def __generate_gates__(self, gates_json):
         """
@@ -49,26 +63,22 @@ class Circuits:
         self.gates_ = {}
         for g in gates_json:
             new_gate = Gate(self, g["id"], g["type"], g["in"])
+            self.wires_[new_gate.gate_id_] = new_gate.output_wire_
+            # TODO(yicong) update all p bit and update all input key pair
             new_gate.make_garble_table()
             self.gates_[g["id"]] = new_gate
-            new_gate.print_garble_table()
+            # new_gate.print_garble_table()
 
-    def __generate_input__(self):
-        """
-        :return: self.inputs_keys :   dictionary of (wire : key pair)
-        """
-        self.inputs_keys_ = {}
-        input_wire_id_list = sorted(self.alice_ + self.bob_)
-
-        for i, idx in enumerate(input_wire_id_list):
-            self.inputs_keys_[idx] = crypto.key_pair()
-        # util.log(str(self.inputs_keys_))
-
-    def __run_circuit__(self):
+    def __run_circuit__(self, input_value_list):
         """
         launch circuit using given input in the self.input
         :return:
         """
+        input_id_list = sorted(self.alice_ + self.bob_)
+        for i, val in enumerate(input_value_list):
+            wire_id = input_id_list[i]
+            in_wire = self.get_wire_by_id(wire_id)
+            in_wire.value_ = val
         for out_id in self.out_gate_id_:
             res = self.gates_[out_id].run_gates()
             print(res)
@@ -78,6 +88,9 @@ class Circuits:
 
     def get_in_keys_by_id(self, in_id):
         return self.inputs_keys_[in_id]
+
+    def get_wire_by_id(self, wire_id):
+        return self.wires_[wire_id]
 
     def print_out(self):
         util.log(self.name_ + ": ")
@@ -90,38 +103,46 @@ class Circuits:
     def __test__(self):
         print(str(crypto.key_pair()[0].hex()))
 
-        # self.__generate_input__([0, 1, 1, 0, 1])
+        self.__run_circuit__([0, 1, 1, 0, 1])
         # util.log(self.__input_table)
         util.log(self.name_)
         for idx, g in self.gates_.items():
             g.print_out()
-        self.__run_circuit__()
         pass
 
 
 class Gate:
-    def __init__(self, circuit, gate_id, type_, inputs):
+    """
+    Attributes:
+        circuit_:       Circuit that the gate belongs to
+        gate_id_:       int
+        type_:          string, type of the gate
+        inputs_:        list of input gate id
+        input_wires_:   dictionary of Wire, {0: wire0, 1: wire1}
+        output_:        output value according to the input_wires_[i].value_ i = 0, 1
+        output_wire_:   Wire
+        garble_table_:  dictionary of tuple, {(0, 0):(encrypt_key, 0)} if 0 $type 0 = 0
+    """
+    def __init__(self, circuit, gate_id, gate_type, inputs):
         """
 
         :param circuit: Circuit that the gate belongs to
         :param gate_id: int
-        :param type_:   string
+        :param gate_type:   string
         :param inputs:  list of input gate id
         """
         self.circuit_ = circuit
-        self.type_ = type_
+        self.type_ = gate_type
         self.gate_id_ = gate_id
         self.inputs_ = inputs
         self.garble_table_ = {}
-        self.input_keys_ = {}
-        # self.input_keys_ = {0: {0:key_a0, 1:key_a1}, 1: {0:key_b0, 1:key_b1}}
+        self.input_wires_ = {}
         for i, idx in enumerate(self.inputs_):
-            try:
-                self.input_keys_[i] = self.circuit_.get_gate_by_id(idx).output_keys_
-            except KeyError:
-                self.input_keys_[i] = self.circuit_.get_in_keys_by_id(idx)
+            self.input_wires_[i] = self.circuit_.get_wire_by_id(idx)
+            # util.log("input:  " + str(i) + "  :  " + str(self.input_wires_[i].wire_id_)
+            #          + ":" + str(self.input_wires_[i].key_pair_))
 
-        self.output_keys_ = crypto.key_pair()
+        self.output_wire_ = Wire(gate_id, crypto.key_pair())
         self.output_ = None
 
     @staticmethod
@@ -130,13 +151,11 @@ class Gate:
         :param n: dimension of the truth table
         :return:  list of tuple
         """
-        # if n < 1:
-        #     return [[]]
-        # sub_table = self.__truth_table__(n - 1)
-        # return [row + [v] for row in sub_table for v in [0, 1]]
         return list(itertools.product([0, 1], repeat=n))
 
     def run_gates(self):
+        # TODO(yicong) modify to fit current data structure with wire
+        # current implementation doesn't affect result
         """
         construct gate according to type:
         NOT , OR , AND , XOR , NOR , NAND , XNOR
@@ -187,12 +206,12 @@ class Gate:
         x -> entry[0]
         y -> entry[1]
         z -> out_val
-        t = z
+        t = z ^ p_bit
         :return:
         """
         # table -> list of (key, index)
         table = []
-
+        # generate truth table
         if self.type_ == "NOT":
             truth_table = self.__truth_table__(1)
         else:
@@ -227,25 +246,43 @@ class Gate:
             else:
                 out_val = -1
                 util.log("bad gate type")
+            # encrypt keys according to the entry of truth table via  crypto.py
             try:
-                encrypt_key = crypto.encrypt(crypto.encrypt(self.output_keys_[out_val],
-                                                            self.input_keys_[1][wire1_idx]),
-                                             self.input_keys_[0][wire0_idx])
+                encrypt_key = crypto.encrypt(crypto.encrypt(self.output_wire_.key_pair_[out_val],
+                                                            self.input_wires_[1].key_pair_[wire1_idx]),
+                                             self.input_wires_[0].key_pair_[wire0_idx])
+                # # test crypto function
+                # decrypt_key = crypto.decrypt(crypto.decrypt(encrypt_key,
+                #                                             self.input_wires_[0].key_pair_[wire0_idx]),
+                #                              self.input_wires_[1].key_pair_[wire1_idx])
+                # if decrypt_key == self.output_wire_.key_pair_[out_val]:
+                #     util.log("successful decrypt!")
+                # else:
+                #     util.log("decrypt error!")
             except KeyError:
-                encrypt_key = crypto.encrypt(self.output_keys_[out_val],
-                                             self.input_keys_[0][wire0_idx])
+                encrypt_key = crypto.encrypt(self.output_wire_.key_pair_[out_val],
+                                             self.input_wires_[0].key_pair_[wire0_idx])
             table.append((encrypt_key, out_val))
+        # shuffle the output value of garble table
+        # util.log("original table")
+        # for rec in table:
+        #     util.log(str(rec))
+        crypto.shuffle(table)
+        # util.log("shuffled table")
+        # for rec in table:
+        #     util.log(str(rec))
 
+        # collect garble table
         for i, entry in enumerate(truth_table):
             self.garble_table_[entry] = table[i]
 
-    def print_garble_table(self, verbose=0):
+    def print_garble_table(self, verbose=1):
         util.log("gate id   :" + str(self.gate_id_) + "     gate type   :" + str(self.type_))
         if verbose == 2:
             for key, val in self.garble_table_.items():
-                util.log("      " + str(key) + "  -> input key 0: " + str(self.input_keys_[0][key[0]]))
+                util.log("      " + str(key) + "  -> input key 0: " + str(self.input_wires_[0].key_pair_[key[0]]))
                 try:
-                    util.log("              -> input key 1: " + str(self.input_keys_[1][key[1]]))
+                    util.log("              -> input key 1: " + str(self.input_wires_[1].key_pair_[key[1]]))
                 except KeyError:
                     pass
                 util.log("              ->  output: " + str(val))
@@ -265,6 +302,53 @@ class Gate:
         util.log("gate id  :" + str(self.gate_id_))
         util.log("inputs   :" + str(self.inputs_))
         util.log("outputs  :" + str(self.output_))
+
+
+class Wire:
+    """
+    Attribute:
+        wire_id_:       int, index of the wire
+        key_pair_:      dictionary {truth value : key}
+        p_bit_:         int, p bit 0 or 1
+    """
+    def __init__(self, idx, key_pair):
+        """
+
+        :param idx:         int, wire index
+        :param key_pair:    {0:key0, 1:key1}
+        """
+        # valid_p_bit = [0, 1]
+        self.wire_id_ = idx
+        self.key_pair_ = key_pair
+        self.p_bit_ = None
+        self.value_ = None
+        pass
+
+    def set_p_bit(self, val=None):
+        valid_val_list = [0, 1]
+        if val is None:
+            self.p_bit_ = crypto.random_1_bit()
+        elif val in valid_val_list:
+            self.p_bit_ = val
+        else:
+            raise ValueError("invalid p bit value")
+        self.__update_key_by_p_bit__()
+
+    def __update_key_by_p_bit__(self):
+        if self.p_bit_ == 1:
+            # util.log("original key pair")
+            # for rec in self.key_pair_:
+            #     util.log(str(rec))
+            self.key_pair_[0], self.key_pair_[1] = self.key_pair_[1], self.key_pair_[0]
+            # util.log("original key pair")
+            # for rec in self.key_pair_:
+            #     util.log(str(rec))
+
+    def print_out(self, verbose=0):
+        util.log("wire id: " + str(self.wire_id_))
+        if verbose == 1:
+            util.log("        key pair: " + str(self.key_pair_))
+            util.log("        p bit:    " + str(self.p_bit_))
 
 
 # for json reading _________________________________________________
