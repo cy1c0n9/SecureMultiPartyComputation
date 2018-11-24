@@ -45,10 +45,12 @@ def local_test(filename):
         a = yao.get_attribute(json_circuit, "alice", [])
         b = yao.get_attribute(json_circuit, "bob", [])
         out = json_circuit["out"]
-        cir = yao.Circuits(name, a, b, out, json_circuit["gates"])
+        cir = yao.Alice(name, a, b, out, json_circuit["gates"])
         # cir.print_out()
         # print(json_circuit["gates"])
         pass
+    # yao.Bob("json_out/circuit from Smart, figure 2.2, page 443.json")
+    yao.Bob("json_out/AND gate.json")
         # << removed >>
 
 # main _____________________________________________________________________

@@ -60,6 +60,8 @@ if ENCRYPTED:   # ____________________________________________________________
 
     def aes_decrypt(cipher_txt, key):
         f = Fernet(key)
+        util.log(cipher_txt)
+        util.log(key)
         plain = f.decrypt(cipher_txt)
         return plain
 
@@ -94,6 +96,11 @@ if ENCRYPTED:   # ____________________________________________________________
             result += bytes([b1 ^ b2])
         return result
 
+    # generate key pair
+    def key_pair():
+        return {0: Fernet.generate_key(),
+                1: Fernet.generate_key()}
+
 else:   # ____________________________________________________________________
     # totally insecure key-less implementation
 
@@ -103,16 +110,15 @@ else:   # ____________________________________________________________________
     def decrypt(cipher_txt, key=0):
         return cipher_txt
 
+    # generate key pair
+    def key_pair():
+        return {0: Fernet.generate_key(),
+                1: Fernet.generate_key()}
+
 # ____________________________________________________________________________
 
 
 # utilities __________________________________________________________________
-# generate key pair
-def key_pair():
-    return {0: Fernet.generate_key(),
-            1: Fernet.generate_key()}
-
-
 # shuffle the list
 # example: shuffle(l) the list is shuffled after execution
 def shuffle(l):
