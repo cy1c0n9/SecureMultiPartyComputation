@@ -5,8 +5,8 @@
 ALICE   = python3 main.py alice	# circuit generator (client)
 BOB     = python3 main.py bob	# circuit evaluator (server)
 LOCAL   = python3 main.py local	# local, not client-server, no transfers
-# ONEFILE	= ${ALICE}		# test 1 file, choose ALICE or LOCAL
-ONEFILE	= ${LOCAL}
+ ONEFILE	= ${ALICE}		# test 1 file, choose ALICE or LOCAL
+# ONEFILE	= ${LOCAL}
 
 default:
 	@echo '  >> make {alice, bob, local}'
@@ -26,6 +26,7 @@ alice:	main.py
 	${ALICE} json/f.max.json
 	${ALICE} json/f.min.json
 	${ALICE} json/f.smart.json
+
 
 bob:	main.py
 	${BOB}

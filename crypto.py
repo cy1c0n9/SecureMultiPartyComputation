@@ -59,9 +59,9 @@ if ENCRYPTED:   # ____________________________________________________________
         return token
 
     def aes_decrypt(cipher_txt, key):
+        # print("key in the aes decrypt:   " + str(key))
+        # print("current cipher txt" + str(cipher_txt))
         f = Fernet(key)
-        util.log(cipher_txt)
-        util.log(key)
         plain = f.decrypt(cipher_txt)
         return plain
 

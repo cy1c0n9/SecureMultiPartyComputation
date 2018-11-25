@@ -107,20 +107,20 @@ class PrimeGroup:
                     return candidate
 
 
-if sys.argv[1] == 'alice':		# one group is sufficient
-    prime_group = PrimeGroup()		# singleton, simpler than metaclass
-else:
-    prime_group = None			# bob receives group from alice
+# if sys.argv[1] == 'alice':		# one group is sufficient
+#     prime_group = PrimeGroup()	# singleton, simpler than metaclass
+# else:
+#     prime_group = None			# bob receives group from alice
 
 
 # sockets __________________________________________________________________
 
-LOCAL_PORT  = 4080			# change if port clashes
-SERVER_PORT = 4080			# change if using port redirection 
+LOCAL_PORT  = 5556			# change if port clashes
+SERVER_PORT = 5556			# change if using port redirection
 SERVER_HOST = 'localhost'		# change if server on different host
 # SERVER_HOST = '0.tcp.au.ngrok.io' 	# relay through amazonws in Sydney
 
-
+"""
 class Socket:
     def send(self, msg):	self.socket.send_pyobj(msg)
 
@@ -141,7 +141,7 @@ class ClientSocket(Socket):  # change local host for
     def __init__(self, endpoint=f'tcp://{SERVER_HOST}:{SERVER_PORT}'):
         self.socket = zmq.Context().socket(zmq.REQ)
         self.socket.connect(endpoint)
-
+"""
 # __________________________________________________________________________
 
 
