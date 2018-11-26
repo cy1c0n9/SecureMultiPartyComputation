@@ -121,10 +121,10 @@ else:   # ____________________________________________________________________
 # utilities __________________________________________________________________
 # shuffle the list
 # example: shuffle(l) the list is shuffled after execution
-def shuffle(l):
-    for i in range(len(l)-1, 0, -1):
-        j = SystemRandom().randrange(i+1)
-        l[i], l[j] = l[j], l[i]
+# def shuffle(l):
+#     for i in range(len(l)-1, 0, -1):
+#         j = SystemRandom().randrange(i+1)
+#         l[i], l[j] = l[j], l[i]
 
 
 # generate random 1 bit, return a int 0 or int 1

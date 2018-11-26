@@ -37,20 +37,6 @@ class Circuits:
         self.bob_ = b
         self.out_gate_id_ = out
 
-    # def __run_circuit__(self, input_value_list):
-    #     """
-    #     launch circuit using given input in the self.input
-    #     :return:
-    #     """
-    #     input_id_list = sorted(self.alice_ + self.bob_)
-    #     for i, val in enumerate(input_value_list):
-    #         wire_id = input_id_list[i]
-    #         in_wire = self.get_wire_by_id(wire_id)
-    #         in_wire.value_ = val
-    #     for out_id in self.out_gate_id_:
-    #         res = self.gates_[out_id].estimate_gates()
-    #         print(res)
-
 
 class AliceCircuits(Circuits):
     """
@@ -77,7 +63,7 @@ class AliceCircuits(Circuits):
         # generate gates
         self.__generate_gates__(gates)
         self.convert_gt_to_json()
-        if DEBUG:
+        if DEBUG == 2:
             # test
             self.__test__()
 
@@ -105,7 +91,8 @@ class AliceCircuits(Circuits):
             new_gate.make_garble_table()
             self.gates_[g["id"]] = new_gate
             # new_gate.convert_gt_to_json()
-            # new_gate.print_garble_table()
+            if DEBUG:
+                new_gate.print_garble_table()
 
     def convert_gt_to_json(self):
         j = {"circuit"  : self.name_,
@@ -126,8 +113,8 @@ class AliceCircuits(Circuits):
         for gate_id, gate in self.gates_.items():
             gate_json = gate.convert_gt_to_json()
             j["gt_list"].append(gate_json)
-        with open('json_out/' + self.name_ + '.json', 'w') as outfile:
-            json.dump(j, outfile, indent=4)
+        # with open('json_out/' + self.name_ + '.json', 'w') as outfile:
+        #     json.dump(j, outfile, indent=4)
         return j
 
     def get_gate_by_id(self, gate_id):
@@ -148,8 +135,6 @@ class AliceCircuits(Circuits):
             g.print_out()
 
     def __test__(self):
-        # print(str(crypto.key_pair()[0].hex()))
-        #
         # util.log(self.name_)
         # for idx, g in self.gates_.items():
         #     g.print_out()
@@ -251,7 +236,8 @@ class BobCircuits(Circuits):
                 util.log("decrypting....")
                 util.log(cipher)
                 util.log(in_wire0.key_)
-                util.log(in_wire1.key_)
+                if in_wire1 is not None:
+                    util.log(in_wire1.key_)
             if in_wire1 is None:
                 decrypt_ = crypto.decrypt(cipher_txt=cipher, key0=in_wire0.key_, key1=None)
             else:
@@ -373,24 +359,24 @@ class Gate:
                 encrypt_ = crypto.encrypt(plain_txt=plain_txt,
                                           key0=self.input_wires_[0].key_pair_[wire0_idx],
                                           key1=self.input_wires_[1].key_pair_[wire1_idx])
-                if DEBUG:
+                if DEBUG == 2:
                     util.log(encrypt_)
-                # test crypto function
-                # util.log("decrypting....")
-                # decrypt_ = crypto.decrypt(cipher_txt=encrypt_,
-                #                           key0=self.input_wires_[0].key_pair_[wire0_idx],
-                #                           key1=self.input_wires_[1].key_pair_[wire1_idx])
-                # decrypt_key = decrypt_[0:-1]
-                # util.log("decrypt all:")
-                # util.log(decrypt_)
-                # util.log("retrieve out_val:   type:" + str(type(decrypt_[-1])) + "val:" + str(decrypt_[-1]))
-                # util.log("retrieve key:")
-                # util.log(decrypt_key)
-                # util.log(" ")
-                # if decrypt_ == self.output_wire_.key_pair_[out_val]:
-                #     util.log("successful decrypt!")
-                # else:
-                #     util.log("decrypt error!")
+                    # test crypto function
+                    util.log("decrypting....")
+                    decrypt_ = crypto.decrypt(cipher_txt=encrypt_,
+                                              key0=self.input_wires_[0].key_pair_[wire0_idx],
+                                              key1=self.input_wires_[1].key_pair_[wire1_idx])
+                    decrypt_key = decrypt_[0:-1]
+                    util.log("decrypt all:")
+                    util.log(decrypt_)
+                    util.log("retrieve out_val:   type:" + str(type(decrypt_[-1])) + "val:" + str(decrypt_[-1]))
+                    util.log("retrieve key:")
+                    util.log(decrypt_key)
+                    util.log(" ")
+                    if decrypt_ == self.output_wire_.key_pair_[out_val]:
+                        util.log("successful decrypt!")
+                    else:
+                        util.log("decrypt error!")
             except KeyError:
                 encrypt_ = crypto.encrypt(plain_txt=plain_txt,
                                           key0=self.input_wires_[0].key_pair_[wire0_idx],
@@ -521,17 +507,6 @@ class AliceWire(Wire):
             self.p_bit_ = val
         else:
             raise ValueError("invalid p bit value")
-        # self.__update_key_by_p_bit__()
-
-    def __update_key_by_p_bit__(self):
-        if self.p_bit_ == 1:
-            # util.log("original key pair")
-            # for rec in self.key_pair_:
-            #     util.log(str(rec))
-            self.key_pair_[0], self.key_pair_[1] = self.key_pair_[1], self.key_pair_[0]
-            # util.log("original key pair")
-            # for rec in self.key_pair_:
-            #     util.log(str(rec))
 
     def print_out(self, verbose=0):
         util.log("wire id: " + str(self.wire_id_))

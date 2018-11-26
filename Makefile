@@ -72,4 +72,3 @@ test:	main.py
 
 andor:	main.py
 	${ONEFILE} json/f.andor.json
-

@@ -1,0 +1,23 @@
+
+{ "+": "yao garbled circuit answer for millionaires problem, Yicong Chen and Lin Liu",
+
+  "circuits" : [
+
+  { "name": "2-bit millionaire problem using 9 Gates",
+    "alice": [1, 2],
+    "bob":   [3, 4],
+    "out":   [19],
+    "gates": [
+      { "id":11, "type":"NOT",  "in":[3] },
+      { "id":12, "type":"NOT",  "in":[4] },
+      { "id":13, "type":"OR",   "in":[1, 11] },
+      { "id":14, "type":"OR",   "in":[1, 2] },
+      { "id":15, "type":"OR",   "in":[2, 11] },
+      { "id":16, "type":"OR",   "in":[12, 14] },
+      { "id":17, "type":"OR",   "in":[12, 15] },
+      { "id":18, "type":"AND",  "in":[13, 16] },
+      { "id":19, "type":"AND",  "in":[17, 18] }
+    ]
+  }
+
+] }
